@@ -1,7 +1,3 @@
-Here's the updated README incorporating the information from the previous one, now organized and tailored for your project:
-
----
-
 # CNN Vessel Segmentation Project
 
 This project focuses on interpreting the segmentation of vessels in medical images using Convolutional Neural Networks (CNNs). The goal is to train a CNN model that can accurately predict vessel structures in medical imaging and analyze the model's predictions using gradient-based methods. The project is organized into several key directories and scripts, each serving a specific purpose, from data handling and model training to gradient extraction and validation.
