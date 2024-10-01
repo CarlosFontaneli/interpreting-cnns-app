@@ -6,7 +6,7 @@ Here's the updated README incorporating the information from the previous one, n
 
 This project focuses on interpreting the segmentation of vessels in medical images using Convolutional Neural Networks (CNNs). The goal is to train a CNN model that can accurately predict vessel structures in medical imaging and analyze the model's predictions using gradient-based methods. The project is organized into several key directories and scripts, each serving a specific purpose, from data handling and model training to gradient extraction and validation.
 
-![Watch the example video!](./assets/InterpretingCNNsApp-Overview.gif)
+![](./assets/InterpretingCNNs-Thumbnail.png)
 
 ## How to Run the Project
 
@@ -39,7 +39,7 @@ python models/train.py
 
 This script will initialize the model, load the dataset, and begin training. The trained model weights will be saved in the `trained-models/` directory.
 
-- For an interactive training experience with metrics and visualization, run the following Jupyter notebook:
+- (Optional)For an interactive training experience with metrics and visualization, run the following Jupyter notebook:
 
 ```bash
 jupyter notebook models/vessel_training_evaluation.ipynb
@@ -86,7 +86,7 @@ To validate the extracted gradients and visualize the results:
 - Finnaly, use the interactive Dash application for dynamic visualization of the gradients:
 
   ```bash
-  cd plotly && python plotly/interatively_interpretation_cnn_app.py
+  cd plotly && python interatively_interpretation_cnn_app.py
   ```
 
 This application allows you to select images, visualize their gradients, and adjust thresholds for detailed gradient analysis.

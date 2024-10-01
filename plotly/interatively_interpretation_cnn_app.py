@@ -85,6 +85,31 @@ def load_thresholded_gradients(num_images):
 THRESHOLDED_GRADIENTS = load_thresholded_gradients(len(ORIGINAL_IMAGES))
 
 
+def adjust_colorbar_and_layout(fig):
+    """
+    Adjust the color bar size and layout to match the image plot size.
+    """
+    fig.update_layout(
+        margin=dict(
+            l=10, r=10, t=10, b=10
+        ),  # Remove margins to make the image occupy full space
+        coloraxis_colorbar={
+            "len": 0.9,  # Set the length of the color bar to match the plot height
+            "yanchor": "middle",  # Align the color bar to the middle
+            "y": 0.5,  # Set the vertical position
+            "thickness": 15,  # Adjust the thickness of the color bar
+        },
+        plot_bgcolor="white",  # Set the plotting area background to white
+        paper_bgcolor="white",  # Set the outer area (around the plot) background to white
+    )
+
+    # Ensure the aspect ratio of the axes is equal so the image doesn't stretch
+    fig.update_xaxes(visible=False)  # ensures no padding
+    fig.update_yaxes(visible=False)  # ensures aspect ratio is correct
+
+    return fig
+
+
 # Function to plot gradients with bounding box
 def plot_gradients_with_bounding_box(gradient, model_name, threshold=0.01):
     """
@@ -104,7 +129,6 @@ def plot_gradients_with_bounding_box(gradient, model_name, threshold=0.01):
         # Create the figure using Plotly Express
         fig = px.imshow(
             gradient[y_min : y_max + 1, x_min : x_max + 1],
-            title=f"Gradient Analysis for {model_name}",
             labels={"x": "x-axis", "y": "y-axis"},
             color_continuous_scale=px.colors.diverging.RdYlGn,
             range_color=[
@@ -117,12 +141,12 @@ def plot_gradients_with_bounding_box(gradient, model_name, threshold=0.01):
             annotations=[
                 {
                     "text": (
-                        f"Pixels: {num_pixels_above_threshold}<br>"
+                        f"Threshold: {threshold:.6f}<br>"
+                        f"Pixels above threshold: {num_pixels_above_threshold}<br>"
                         f"X(min, max): ({x_min}, {x_max})<br>"
                         f"Y(min, max): ({y_min}, {y_max})<br>"
                         f"Area: {bounding_box_area}<br>"
                         f"Fulfillment: {fulfillment:.2f}<br>"
-                        f"Threshold: {threshold:.6f}<br>"
                     ),
                     "showarrow": False,
                     "xref": "paper",
@@ -131,19 +155,20 @@ def plot_gradients_with_bounding_box(gradient, model_name, threshold=0.01):
                     "y": 1,
                     "xanchor": "left",
                     "yanchor": "top",
-                    "font": {"size": 12, "color": "black"},
+                    "font": {"size": 20, "color": "black"},
                     "bgcolor": "white",
                     "opacity": 0.7,
                 }
             ],
-            xaxis={"visible": False},
-            yaxis={"visible": False},
         )
         return fig
     else:
-        return px.imshow(
+
+        fig = px.imshow(
             np.zeros((128, 128)), color_continuous_scale=px.colors.sequential.gray
         )
+
+        return adjust_colorbar_and_layout(fig)
 
 
 # Initialize Dash app with Bootstrap
@@ -156,7 +181,7 @@ app.layout = dbc.Container(
         dbc.Row(
             dbc.Col(
                 html.H1(
-                    "Interpreting CNNs - Interactively Gradient Plots",
+                    "Interpreting CNNs - Interactive Gradient Plots",
                     className="text-center",
                 ),
                 width=12,
@@ -195,12 +220,9 @@ app.layout = dbc.Container(
                         dcc.Graph(
                             id="image-display",
                             config={"displayModeBar": True},
-                            style={"width": "100%", "height": "70vh"},
+                            style={"width": "100%", "height": "45vh"},
                         ),
                     ],
-                    width=6,
-                    md=6,
-                    lg=3,
                 ),
                 dbc.Col(
                     [
@@ -211,12 +233,9 @@ app.layout = dbc.Container(
                         dcc.Graph(
                             id="fulfillment-image-display",
                             config={"displayModeBar": True},
-                            style={"width": "100%", "height": "70vh"},
+                            style={"width": "100%", "height": "45vh"},
                         ),
                     ],
-                    width=6,
-                    md=6,
-                    lg=3,
                 ),
                 dbc.Col(
                     [
@@ -224,12 +243,9 @@ app.layout = dbc.Container(
                         dcc.Graph(
                             id="model-mask-display",
                             config={"displayModeBar": True},
-                            style={"width": "100%", "height": "70vh"},
+                            style={"width": "100%", "height": "45vh"},
                         ),
                     ],
-                    width=6,
-                    md=6,
-                    lg=3,
                 ),
                 dbc.Col(
                     [
@@ -241,12 +257,9 @@ app.layout = dbc.Container(
                         dcc.Graph(
                             id="result-image-display",
                             config={"displayModeBar": True},
-                            style={"width": "100%", "height": "70vh"},
+                            style={"width": "100%", "height": "45vh"},
                         ),
                     ],
-                    width=6,
-                    md=6,
-                    lg=3,
                 ),
             ]
         ),
@@ -280,11 +293,11 @@ app.layout = dbc.Container(
                         dcc.Graph(
                             id="gradient-display",
                             config={"displayModeBar": True},
-                            style={"width": "100%", "height": "70vh"},
+                            style={"width": "100%", "height": "90vh"},
                         ),
                     ],
                     width=12,
-                    style={"margin-top": "20px"},
+                    style={"margin-top": "10px"},
                 ),
             ]
         ),
@@ -324,6 +337,11 @@ def update_images(selected_index):
     model_fig = px.imshow(
         class_one_probs, color_continuous_scale=px.colors.diverging.RdYlGn
     )
+
+    # Apply the layout adjustments
+    original_fig = adjust_colorbar_and_layout(original_fig)
+    fulfillment_fig = adjust_colorbar_and_layout(fulfillment_fig)
+    model_fig = adjust_colorbar_and_layout(model_fig)
 
     return original_fig, fulfillment_fig, model_fig
 
@@ -383,10 +401,13 @@ def update_result_image(hover_data, selected_index):
             color_continuous_scale=px.colors.diverging.RdYlGn,
             range_color=[-max_val, max_val],
         )
-        return fig
-    return px.imshow(
+
+        return adjust_colorbar_and_layout(fig)
+    fig = px.imshow(
         torch.zeros(128, 128), color_continuous_scale=px.colors.diverging.RdYlGn
     )
+
+    return adjust_colorbar_and_layout(fig)
 
 
 # Callback to update the gradient display and the threshold title
@@ -416,17 +437,19 @@ def update_gradient_display(hover_data_json, threshold, selected_index):
         fig = plot_gradients_with_bounding_box(
             loaded_gradient[y, x].to("cpu").numpy(), "Model", threshold=threshold_val
         )
-        fig.update_layout(title=f"Pixels of gradient above: {threshold_val:.4f}")
-        return fig, [
+
+        return (
+            adjust_colorbar_and_layout(fig),
             f"Detailed Thresholded Gradient",
-            html.Br(),
-            f"Threshold = {threshold_val:.4f}",
-        ]
+        )
+
+    fig = px.imshow(
+        torch.zeros(128, 128), color_continuous_scale=px.colors.diverging.RdYlGn
+    )
+
     return (
-        px.imshow(
-            torch.zeros(128, 128), color_continuous_scale=px.colors.diverging.RdYlGn
-        ),
-        "Detailed Gradient:",
+        adjust_colorbar_and_layout(fig),
+        "Detailed Gradient",
     )
 
 
